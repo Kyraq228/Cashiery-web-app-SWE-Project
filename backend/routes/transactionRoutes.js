@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
+const { authMiddleware, adminAuth } = require('../middleware/authMiddleware');
+
 
 // Create transaction (Cashier-only)
 router.post('/', async (req, res) => {
@@ -27,7 +29,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all transactions (Admin-only)
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware, adminAuth, async (req, res) => { // Add authMiddleware
   try {
     const transactions = await db.query(`
       SELECT t.*, u.username 

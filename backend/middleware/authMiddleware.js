@@ -17,7 +17,9 @@ const authMiddleware = (req, res, next) => {
 };
 
 // Middleware to restrict access to admins only
+// authMiddleware.js
 const adminAuth = (req, res, next) => {
+  console.log('User Role:', req.user?.role); // <-- Add this line
   if (req.user?.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
   }

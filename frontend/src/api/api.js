@@ -106,4 +106,7 @@ export {
   searchProducts,
   addProduct,
   updateProduct,
-  createTran
+  createTransaction,
+  getTransactions,
+  logout,
+};

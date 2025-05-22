@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
-const { adminAuth } = require('../middleware/authMiddleware');
+const { authMiddleware, adminAuth } = require('../middleware/authMiddleware');
 
 // Get all products (Cashier/Admin)
 router.get('/', async (req, res) => {
@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create product (Admin-only)
-router.post('/', adminAuth, async (req, res) => {
+router.post('/', authMiddleware, adminAuth, async (req, res) => { // Add authMiddleware
   const { name, price, stock, SKU } = req.body;
   try {
     await db.query(
@@ -28,7 +28,7 @@ router.post('/', adminAuth, async (req, res) => {
 });
 
 // Update product stock/price (Admin-only)
-router.put('/:id', adminAuth, async (req, res) => {
+router.put('/:id', authMiddleware, adminAuth, async (req, res) => { // Add authMiddleware
   const { id } = req.params;
   const { price, stock } = req.body;
   try {
