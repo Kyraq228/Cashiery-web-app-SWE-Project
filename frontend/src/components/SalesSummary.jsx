@@ -11,11 +11,11 @@ function SalesSummary() {
       .then(data => setSummary(data));
   }, []);
 
-  if (!summary) return <div>Loading...</div>;
+  if (!summary) return <div><h3>Daily Sales Summary</h3> Loading...</div>;
 
   return (
     <div>
-      <h4>Daily Sales Summary</h4>
+      <h3>Daily Sales Summary</h3>
       <div>Total Sales: ${summary.totalSales}</div>
       <div>Transactions: {summary.transactionCount}</div>
     </div>

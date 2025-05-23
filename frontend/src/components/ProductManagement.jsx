@@ -3,7 +3,7 @@ import { apiRequest } from "../api/api";
 
 function ProductManagement() {
   const [products, setProducts] = useState([]);
-  const [form, setForm] = useState({ name: "", price: "", stock: "", sku: "" });
+  const [form, setForm] = useState({ name: "", price: "", stock: "", SKU: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -16,6 +16,7 @@ function ProductManagement() {
     setLoading(true);
     try {
       const data = await apiRequest("/products");
+      console.log("Received products:", data);
       setProducts(data.products || data || []);
     } catch (err) {
       setError("Failed to fetch products: " + err.message);
@@ -46,7 +47,7 @@ function ProductManagement() {
         await apiRequest("/products", "POST", productData);
       }
       
-      setForm({ name: "", price: "", stock: "", sku: "" });
+      setForm({ name: "", price: "", stock: "", SKU: "" });
       fetchProducts();
     } catch (err) {
       setError(err.message);
@@ -58,7 +59,7 @@ function ProductManagement() {
       name: product.name,
       price: product.price.toString(),
       stock: product.stock.toString(),
-      sku: product.sku || ""
+      SKU: product.sku || ""
     });
     setEditingId(product.id);
   };
@@ -75,7 +76,7 @@ function ProductManagement() {
   };
 
   const cancelEdit = () => {
-    setForm({ name: "", price: "", stock: "", sku: "" });
+    setForm({ name: "", price: "", stock: "", SKU: "" });
     setEditingId(null);
   };
 
@@ -122,9 +123,9 @@ function ProductManagement() {
         </div>
         <div>
           <input 
-            name="sku" 
+            name="SKU" 
             placeholder="SKU (optional)" 
-            value={form.sku} 
+            value={form.SKU} 
             onChange={handleChange} 
           />
         </div>
@@ -154,7 +155,9 @@ function ProductManagement() {
                   <strong>{product.name}</strong>
                   <div>Price: ${product.price}</div>
                   <div>Stock: {product.stock}</div>
-                  {product.sku && <div>SKU: {product.sku}</div>}
+                  {(product.SKU || product.sku) && (product.SKU || product.sku).trim() !== "" && (
+                  <div>SKU: {product.SKU || product.sku}</div>
+)}
                 </div>
                 <div>
                   <button onClick={() => handleEdit(product)}>Edit</button>

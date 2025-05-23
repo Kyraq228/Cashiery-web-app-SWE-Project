@@ -85,6 +85,10 @@ export const updateProduct = async (id, productData) => {
   return apiRequest(`/products/${id}`, "PUT", productData);
 };
 
+export const getLowStockProducts = async (threshold = 10) => {
+  return apiRequest(`/products/low-stock?threshold=${threshold}`);
+};
+
 // Transaction APIs
 export const createTransaction = async (transactionData) => {
   return apiRequest("/transactions", "POST", transactionData);
