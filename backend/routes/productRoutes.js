@@ -6,7 +6,16 @@ const { authMiddleware, adminAuth } = require('../middleware/authMiddleware');
 // Get all products (Cashier/Admin)
 router.get('/', async (req, res) => {
   try {
-    const products = await db.query('SELECT * FROM products ORDER BY name');
+    const search = req.query.search;
+    let products;
+    if (search) {
+      products = await db.query(
+        'SELECT * FROM products WHERE name ILIKE $1 ORDER BY name',
+        [`%${search}%`]
+      );
+    } else {
+      products = await db.query('SELECT * FROM products ORDER BY name');
+    }
     res.json(products.rows);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -80,6 +89,20 @@ router.put('/:id', authMiddleware, adminAuth, async (req, res) => {
       error: 'Failed to update product',
       details: err.message 
     });
+  }
+});
+
+router.delete('/:productId', authMiddleware, adminAuth, async (req, res) => {
+  const { productId } = req.params;
+  try {
+    // Optionally, check if product exists first
+    const result = await db.query('DELETE FROM products WHERE id = $1 RETURNING *', [productId]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    res.json({ message: 'Product deleted successfully', product: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete product' });
   }
 });
 
