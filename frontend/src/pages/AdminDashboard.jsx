@@ -3,6 +3,7 @@ import ProductManagement from "../components/ProductManagement";
 import InventoryAlerts from "../components/InventoryAlerts";
 import SalesSummary from "../components/SalesSummary";
 import TransactionLog from "../components/TransactionLog";
+import UserRegistration from "../components/UserRegistration";
 
 function AdminDashboard() {
   return (
@@ -12,6 +13,7 @@ function AdminDashboard() {
       <SalesSummary />
       <ProductManagement />
       <TransactionLog />
+      <UserRegistration />
     </div>
   );
 }

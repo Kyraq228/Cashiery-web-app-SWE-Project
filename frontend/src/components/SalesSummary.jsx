@@ -1,17 +1,25 @@
 import React, { useEffect, useState } from "react";
+import { apiRequest } from "../api/api";
 
 function SalesSummary() {
   const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/transactions/summary", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-    })
-      .then(res => res.json())
-      .then(data => setSummary(data));
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+
+    apiRequest(`/transactions/summary?date=${todayStr}`, "GET")
+      .then(data => setSummary(data))
+      .finally(() => setLoading(false));
   }, []);
 
-  if (!summary) return <div><h3>Daily Sales Summary</h3> Loading...</div>;
+  if (loading) return <div>Loading sales summary...</div>;
+  if (!summary) return <div><h3>Daily Sales Summary</h3>No sales data available.</div>;
 
   return (
     <div>

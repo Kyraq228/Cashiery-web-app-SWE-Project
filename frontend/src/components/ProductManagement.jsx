@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { apiRequest } from "../api/api";
 
-function ProductManagement() {
+function ProductManagement({ onProductChange }) {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState({ name: "", price: "", stock: "", SKU: "" });
   const [error, setError] = useState("");
@@ -16,8 +16,10 @@ function ProductManagement() {
     setLoading(true);
     try {
       const data = await apiRequest("/products");
-      console.log("Received products:", data);
-      setProducts(data.products || data || []);
+      const sortedProducts = [...(data.products || data || [])].sort((a, b) => 
+        a.name.localeCompare(b.name)
+      );
+      setProducts(sortedProducts);
     } catch (err) {
       setError("Failed to fetch products: " + err.message);
     } finally {
@@ -35,9 +37,10 @@ function ProductManagement() {
     
     try {
       const productData = {
-        ...form,
+        name: form.name,
         price: parseFloat(form.price),
-        stock: parseInt(form.stock)
+        stock: parseInt(form.stock),
+        SKU: form.SKU.trim() === "" ? null : form.SKU
       };
 
       if (editingId) {
@@ -48,7 +51,8 @@ function ProductManagement() {
       }
       
       setForm({ name: "", price: "", stock: "", SKU: "" });
-      fetchProducts();
+      await fetchProducts();
+      if (onProductChange) onProductChange();
     } catch (err) {
       setError(err.message);
     }
@@ -59,7 +63,7 @@ function ProductManagement() {
       name: product.name,
       price: product.price.toString(),
       stock: product.stock.toString(),
-      SKU: product.sku || ""
+      SKU: product.SKU || product.sku || ""
     });
     setEditingId(product.id);
   };
@@ -69,7 +73,8 @@ function ProductManagement() {
     
     try {
       await apiRequest(`/products/${id}`, "DELETE");
-      fetchProducts();
+      await fetchProducts();
+      if (onProductChange) onProductChange();
     } catch (err) {
       setError("Failed to delete product: " + err.message);
     }
@@ -85,85 +90,96 @@ function ProductManagement() {
   }
 
   return (
-    <div>
+    <div className="product-management">
       <h3>Product Management</h3>
       
-      <form onSubmit={handleSubmit}>
-        <div>
-          <input 
-            name="name" 
-            placeholder="Product Name" 
-            value={form.name} 
-            onChange={handleChange} 
-            required 
+      <form onSubmit={handleSubmit} className="product-form">
+        <div className="form-group">
+          <input
+            name="name"
+            placeholder="Product Name"
+            value={form.name}
+            onChange={handleChange}
+            required
+            className="form-input"
           />
         </div>
-        <div>
-          <input 
-            name="price" 
-            placeholder="Price" 
-            value={form.price} 
-            onChange={handleChange} 
-            required 
-            type="number" 
+        <div className="form-group">
+          <input
+            name="price"
+            placeholder="Price"
+            value={form.price}
+            onChange={handleChange}
+            required
+            type="number"
             step="0.01"
             min="0"
+            className="form-input"
           />
         </div>
-        <div>
-          <input 
-            name="stock" 
-            placeholder="Stock Quantity" 
-            value={form.stock} 
-            onChange={handleChange} 
-            required 
+        <div className="form-group">
+          <input
+            name="stock"
+            placeholder="Stock Quantity"
+            value={form.stock}
+            onChange={handleChange}
+            required
             type="number"
             min="0"
+            className="form-input"
           />
         </div>
-        <div>
-          <input 
-            name="SKU" 
-            placeholder="SKU (optional)" 
-            value={form.SKU} 
-            onChange={handleChange} 
+        <div className="form-group">
+          <input
+            name="SKU"
+            placeholder="SKU (optional)"
+            value={form.SKU}
+            onChange={handleChange}
+            className="form-input"
           />
         </div>
-        <div>
-          <button type="submit">
+        <div className="form-actions">
+          <button type="submit" className="submit-btn">
             {editingId ? "Update Product" : "Add Product"}
           </button>
           {editingId && (
-            <button type="button" onClick={cancelEdit}>
+            <button type="button" onClick={cancelEdit} className="cancel-btn">
               Cancel Edit
             </button>
           )}
         </div>
       </form>
 
-      {error && <div className="error">{error}</div>}
+      {error && <div className="error-message">{error}</div>}
 
-      <div>
+      <div className="product-list">
         <h4>Current Products ({products.length})</h4>
         {products.length === 0 ? (
-          <p>No products found.</p>
+          <p className="no-products">No products found.</p>
         ) : (
-          <ul>
+          <ul className="products">
             {products.map(product => (
-              <li key={product.id}>
-                <div>
-                  <strong>{product.name}</strong>
-                  <div>Price: ${product.price}</div>
-                  <div>Stock: {product.stock}</div>
-                  {(product.SKU || product.sku) && (product.SKU || product.sku).trim() !== "" && (
-                  <div>SKU: {product.SKU || product.sku}</div>
-)}
+              <li key={product.id} className="product-item">
+                <div className="product-info">
+                  <strong className="product-name">{product.name}</strong>
+                  <div className="product-detail">Price: ${typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(product.price).toFixed(2)}</div>
+                  <div className={`product-detail ${product.stock < 10 ? 'low-stock' : ''}`}>
+                    Stock: {product.stock}
+                  </div>
+                  {(product.SKU || product.sku) && (
+                    <div className="product-detail">SKU: {product.SKU || product.sku}</div>
+                  )}
                 </div>
-                <div>
-                  <button onClick={() => handleEdit(product)}>Edit</button>
+                <div className="product-actions">
+                  <button 
+                    onClick={() => handleEdit(product)} 
+                    className="edit-btn"
+                  >
+                    Edit
+                  </button>
                   <button 
                     onClick={() => handleDelete(product.id)}
-                    style={{ backgroundColor: '#dc3545' }}
+                    className="delete-btn"
                   >
                     Delete
                   </button>
