@@ -1,20 +1,24 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from '../context/AuthContext';
 
 function Navbar() {
-  const role = localStorage.getItem("role");
+  const { user, logout } = useAuth();
 
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = "/";
-  };
+  if (!user) {
+    return (
+      <nav>
+        <Link to="/login">Login</Link>
+      </nav>
+    );
+  }
 
   return (
     <nav>
-      <Link to="/">Home</Link>
-      {role === "cashier" && <Link to="/pos">POS</Link>}
-      {role === "admin" && <Link to="/admin">Admin Dashboard</Link>}
-      {role && <button onClick={handleLogout}>Logout</button>}
+      <span>Welcome, {user.role}!</span>
+      {user.role === "cashier" && <Link to="/pos">POS</Link>}
+      {user.role === "admin" && <Link to="/admin">Admin Dashboard</Link>}
+      <button onClick={logout}>Logout</button>
     </nav>
   );
 }

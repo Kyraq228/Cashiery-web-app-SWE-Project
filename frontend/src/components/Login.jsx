@@ -1,6 +1,9 @@
 import React, { useState } from "react";
+import { useAuth } from '../context/AuthContext';
+
 
 function Login() {
+  const { login } = useAuth()
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -16,8 +19,7 @@ function Login() {
       });
       const data = await res.json();
       if (res.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", data.role);
+        login(data.token, data.role); // Replace localStorage calls
         window.location.href = data.role === "admin" ? "/admin" : "/pos";
       } else {
         setError(data.message || "Login failed");

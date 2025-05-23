@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "/api";
 
 // Helper function to get the JWT token from localStorage
 const getToken = () => localStorage.getItem("token");
@@ -10,13 +10,13 @@ const setToken = (token) => localStorage.setItem("token", token);
 const removeToken = () => localStorage.removeItem("token");
 
 // Generic fetch wrapper to handle API requests
-const apiRequest = async (endpoint, method = "GET", body = null) => {
-  const token = getToken(); // Automatically fetch token
+export const apiRequest = async (endpoint, method = "GET", body = null) => {
+  const token = getToken();
   const headers = {
     "Content-Type": "application/json",
   };
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`; // Auto-include token
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   const config = {
@@ -27,24 +27,29 @@ const apiRequest = async (endpoint, method = "GET", body = null) => {
     config.body = JSON.stringify(body);
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-  const data = await response.json();
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error(data.error || "API request failed");
+    if (!response.ok) {
+      throw new Error(data.error || data.message || "API request failed");
+    }
+
+    return data;
+  } catch (error) {
+    console.error('API Request Error:', error);
+    throw error;
   }
-
-  return data;
 };
 
 // Authentication APIs
-const login = async (username, password) => {
+export const login = async (username, password) => {
   const data = await apiRequest("/auth/login", "POST", { username, password });
   setToken(data.token);
   return { token: data.token, role: data.role };
 };
 
-const register = async (username, password, role) => {
+export const register = async (username, password, role) => {
   const data = await apiRequest("/auth/register", "POST", {
     username,
     password,
@@ -54,59 +59,47 @@ const register = async (username, password, role) => {
 };
 
 // Product APIs
-const getProducts = async () => {
+export const getProducts = async () => {
   return apiRequest("/products");
 };
 
-const searchProducts = async (searchTerm) => {
-  // Assuming backend supports a query parameter for searching by name or SKU
-  // If not, we'll filter locally after fetching all products
-  const products = await getProducts();
-  return products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.SKU.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+export const searchProducts = async (searchTerm) => {
+  try {
+    return await apiRequest(`/products?search=${encodeURIComponent(searchTerm)}`);
+  } catch (error) {
+    // Fallback: get all products and filter locally
+    const products = await getProducts();
+    return products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (product.sku && product.sku.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }
 };
 
-const addProduct = async (productData) => {
-  return apiRequest("/products", "POST", productData); // Token is now auto-included
+export const addProduct = async (productData) => {
+  return apiRequest("/products", "POST", productData);
 };
 
-const updateProduct = async (id, productData) => {
-  const token = getToken();
-  return apiRequest(`/products/${id}`, "PUT", productData, token);
+export const updateProduct = async (id, productData) => {
+  return apiRequest(`/products/${id}`, "PUT", productData);
 };
 
 // Transaction APIs
-const createTransaction = async (cashierId, items, total) => {
-  const token = getToken();
-  return apiRequest(
-    "/transactions",
-    "POST",
-    { cashierId, items, total },
-    token
-  );
+export const createTransaction = async (transactionData) => {
+  return apiRequest("/transactions", "POST", transactionData);
 };
 
-const getTransactions = async () => {
-  const token = getToken();
-  return apiRequest("/transactions", token);
+export const getTransactions = async () => {
+  return apiRequest("/transactions");
+};
+
+export const getTransactionSummary = async () => {
+  return apiRequest("/transactions/summary");
 };
 
 // Logout function to clear token
-const logout = () => {
+export const logout = () => {
   removeToken();
-};
-
-export {
-  login,
-  register,
-  getProducts,
-  searchProducts,
-  addProduct,
-  updateProduct,
-  createTransaction,
-  getTransactions,
-  logout,
+  localStorage.removeItem("role");
 };

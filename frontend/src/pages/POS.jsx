@@ -23,17 +23,26 @@ function POS() {
     setCart(prev => prev.filter(item => item.id !== id));
   };
 
-  const handleProcessPayment = async () => {
-    // TODO: Send transaction to backend
-    setCart([]);
-    alert("Payment processed!");
+  const handleProcessPayment = () => {
+    console.log("Payment processed for cart:", cart);
   };
 
   return (
     <div>
-      <h2>Point of Sale</h2>
-      <ProductSearch onAddToCart={handleAddToCart} />
-      <Cart cart={cart} onRemove={handleRemove} onProcessPayment={handleProcessPayment} />
+      <h2>Point of Sale System</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+        <div>
+          <ProductSearch onAddToCart={handleAddToCart} />
+        </div>
+        <div>
+          <Cart 
+            cart={cart} 
+            onRemove={handleRemove} 
+            onProcessPayment={handleProcessPayment}
+            setCart={setCart}
+          />
+        </div>
+      </div>
     </div>
   );
 }

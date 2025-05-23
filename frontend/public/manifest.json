@@ -1,0 +1,22 @@
+{
+  "short_name": "Cashiery",
+  "name": "Cashiery POS System",
+  "icons": [
+    {
+      "src": "%PUBLIC_URL%/small.jpg",
+      "type": "image/jpg",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "%PUBLIC_URL%/big.jpg",
+      "type": "image/jpg",
+      "sizes": "512x512",
+      "purpose": "any"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff"
+}
