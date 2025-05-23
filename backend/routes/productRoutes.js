@@ -6,7 +6,7 @@ const { authMiddleware, adminAuth } = require('../middleware/authMiddleware');
 // Get all products (Cashier/Admin)
 router.get('/', async (req, res) => {
   try {
-    const products = await db.query('SELECT * FROM products');
+    const products = await db.query('SELECT * FROM products ORDER BY name');
     res.json(products.rows);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -27,18 +27,59 @@ router.post('/', authMiddleware, adminAuth, async (req, res) => { // Add authMid
   }
 });
 
-// Update product stock/price (Admin-only)
-router.put('/:id', authMiddleware, adminAuth, async (req, res) => { // Add authMiddleware
-  const { id } = req.params;
-  const { price, stock } = req.body;
+router.get('/low-stock', async (req, res) => {
   try {
-    await db.query(
-      'UPDATE products SET price = $1, stock = $2 WHERE id = $3',
-      [price, stock, id]
+    const products = await db.query(
+      'SELECT * FROM products WHERE stock < 10'
     );
-    res.json({ message: 'Product updated' });
+    res.json(products.rows);
   } catch (err) {
-    res.status(500).json({ error: 'Update failed' });
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update product stock/price (Admin-only)
+router.put('/:id', authMiddleware, adminAuth, async (req, res) => {
+  const { id } = req.params;
+  const { name, price, stock, SKU } = req.body;
+  
+  // Basic validation for required fields
+  if (!name || price === undefined || stock === undefined) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    // Handle SKU being null, undefined, or empty string
+    const skuValue = (SKU === null || SKU === undefined || SKU === '') ? null : SKU;
+    
+    const result = await db.query(
+      `UPDATE products 
+       SET name = $1, price = $2, stock = $3, SKU = $4 
+       WHERE id = $5
+       RETURNING *`,
+      [name, parseFloat(price), parseInt(stock), skuValue, id]
+    );
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    res.json({ 
+      message: 'Product updated successfully',
+      product: result.rows[0]
+    });
+  } catch (err) {
+    console.error('Update error:', err);
+    
+    // Handle specific database errors
+    if (err.code === '23505') { // Unique violation (e.g., duplicate SKU)
+      return res.status(400).json({ error: 'SKU must be unique' });
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to update product',
+      details: err.message 
+    });
   }
 });
 
