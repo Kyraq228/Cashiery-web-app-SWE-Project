@@ -8,7 +8,7 @@ function TransactionLog() {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
     })
       .then(res => res.json())
-      .then(data => setTransactions(data.transactions || []));
+      .then(data => setTransactions(data));
   }, []);
 
   return (
@@ -17,7 +17,7 @@ function TransactionLog() {
       <ul>
         {transactions.map(tx => (
           <li key={tx.id}>
-            {tx.timestamp}: {tx.cashier} sold {tx.items.length} items for ${tx.total}
+            {new Date(tx.created_at).toLocaleString()}: {tx.username} sold {tx.items.length} items for ${tx.total}
           </li>
         ))}
       </ul>

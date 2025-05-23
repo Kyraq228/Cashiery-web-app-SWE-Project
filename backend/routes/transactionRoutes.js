@@ -5,8 +5,14 @@ const { authMiddleware, adminAuth } = require('../middleware/authMiddleware');
 
 
 // Create transaction (Cashier-only)
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {  // Added authMiddleware
   const { cashierId, items, total } = req.body;
+  
+  // Verify cashierId matches the authenticated user
+  if (req.user.id !== cashierId) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+
   try {
     // Insert transaction
     const transaction = await db.query(
@@ -27,7 +33,6 @@ router.post('/', async (req, res) => {
     res.status(400).json({ error: 'Transaction failed' });
   }
 });
-
 // Get all transactions (Admin-only)
 router.get('/', authMiddleware, adminAuth, async (req, res) => { // Add authMiddleware
   try {

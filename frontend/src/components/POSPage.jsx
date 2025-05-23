@@ -18,8 +18,10 @@ function POSPage() {
       <ProductSearch onAddToCart={handleAddToCart} />
       <Cart 
         cart={cart}
-        onRemove={handleRemoveItem}
-        onProcessPayment={() => console.log('Processing payment...')}
+        onRemove={handleRemoveFromCart}
+        onProcessPayment={handleProcessPayment}
+        setCart={setCart}
+        currentUser={currentUser}  // Pass the logged-in user 
       />
     </div>
   );

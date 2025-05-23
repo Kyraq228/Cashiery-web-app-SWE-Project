@@ -1,7 +1,7 @@
 import React from "react";
 import { apiRequest } from "../api/api";
 
-function Cart({ cart, onRemove, onProcessPayment, setCart }) {
+function Cart({ cart, onRemove, onProcessPayment, setCart, currentUser }) {
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleProcessPayment = async () => {
@@ -9,6 +9,7 @@ function Cart({ cart, onRemove, onProcessPayment, setCart }) {
     
     try {
       await apiRequest("/transactions", "POST", {
+        cashierId: currentUser.id,  // Add cashier ID from currentUser
         items: cart.map(item => ({
           productId: item.id,
           quantity: item.quantity,

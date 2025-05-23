@@ -16,7 +16,12 @@ router.post('/login', async (req, res) => {
     if (!validPassword) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user.rows[0].id, role: user.rows[0].role }, JWT_SECRET);
-    res.json({ token, role: user.rows[0].role });
+    res.json({ 
+      token, 
+      id: user.rows[0].id,
+      username: user.rows[0].username,
+      role: user.rows[0].role
+    });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -38,5 +43,7 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ error: 'Username already exists' });
   }
 });
+
+
 
 module.exports = router;
